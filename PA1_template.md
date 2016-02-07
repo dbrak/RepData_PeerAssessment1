@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
@@ -11,7 +6,8 @@ The provided activity data file should be unzipped (using the unzip command at t
 
 The code below will read the CSV file and convert it into a data.table for further processing.
 
-```{r} 
+
+```r
 echo = TRUE
 
 #Libaries needed for the assignment
@@ -23,7 +19,8 @@ data <- data.table(data)
 ```
 
 ## What is mean total number of steps taken per day?
-```{r} 
+
+```r
 echo = TRUE
 
 #Remove observations with NA for steps
@@ -36,18 +33,27 @@ daily_data <- daily_data[,date := as.Date(date)]
 
 #Display median and mean data
 summary(daily_data[,steps])
+```
 
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    8841   10760   10770   13290   21190
+```
+
+```r
 #Plot daily step Counts
 ggplot(daily_data,aes(date,steps)) +
     geom_bar(stat="identity") +
     ggtitle("Steps per Day") + 
     xlab("Date") +
     ylab("Total Steps")
-
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
+
 ## What is the average daily activity pattern?
-```{r} 
+
+```r
 echo = TRUE
 
 #take a mean of every five minute interval removing missing values
@@ -59,21 +65,36 @@ ggplot(daily_pattern,aes(interval,steps)) +
     ggtitle("Average Number of Steps per 5-minute Interval") + 
     xlab("5-minute Interval") +
     ylab("Steps")
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+
+```r
 #Print the interval with the highest average number of steps
 index <- max(daily_pattern[,steps])
 daily_pattern[steps == index]
+```
 
+```
+##    interval    steps
+## 1:      835 206.1698
 ```
 
 
 ## Imputing missing values
-```{r} 
+
+```r
 echo = TRUE
 
 #Calculate the missing values in the dataset
 nrow(data[is.na(steps)])
+```
 
+```
+## [1] 2304
+```
+
+```r
 #Create a new dataset substituting interval means for NAs
 modified_data <- data
 index <- which(is.na(modified_data$steps))
@@ -89,7 +110,11 @@ ggplot(modified_data,aes(date,steps)) +
     ggtitle("Steps per Day") + 
     xlab("Date") +
     ylab("Total Steps")
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+
+```r
 #Aggregate observations by date
 modified_daily_data <- modified_data[,sum(steps),by="date"]
 setnames(modified_daily_data,"V1","steps")
@@ -97,12 +122,17 @@ modified_daily_data <- modified_daily_data[,date := as.Date(date)]
 
 #Display median and mean data
 summary(modified_daily_data[,steps])
+```
 
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    9819   10770   10770   12810   21190
 ```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
-```{r} 
+
+```r
 echo = TRUE
 
 #Prepare data for weekly pattern analysis
@@ -119,5 +149,6 @@ ggplot(weekday_pattern,aes(interval,steps)) +
     xlab("5-minute Interval") +
     ylab("Steps") +
     facet_grid(weekday ~ .)
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
