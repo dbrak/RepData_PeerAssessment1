@@ -19,6 +19,8 @@ data <- data.table(data)
 ```
 
 ## What is mean total number of steps taken per day?
+To find these results, I removed the NAs from the data set and then aggregated the data by day for the period.  As the plot below shows, there were some days with no data (all NAs) or only zero numbers of steps.
+
 
 ```r
 echo = TRUE
@@ -31,16 +33,6 @@ daily_data <- daily_data[,sum(steps),by="date"]
 setnames(daily_data,"V1","steps")
 daily_data <- daily_data[,date := as.Date(date)]
 
-#Display median and mean data
-summary(daily_data[,steps])
-```
-
-```
-##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##      41    8841   10760   10770   13290   21190
-```
-
-```r
 #Plot daily step Counts
 ggplot(daily_data,aes(date,steps)) +
     geom_bar(stat="identity") +
@@ -51,7 +43,19 @@ ggplot(daily_data,aes(date,steps)) +
 
 ![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
 
+```r
+#Display median and mean data
+summary(daily_data[,steps])
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    8841   10760   10770   13290   21190
+```
+
 ## What is the average daily activity pattern?
+The daily pattern shown below indicates a spike of activity in the morning with regular cycles throughtout the rest of the day.  The 0835 interval in the morning is the highest average performance over the course of the 2 month study.
+
 
 ```r
 echo = TRUE
@@ -93,8 +97,14 @@ nrow(data[is.na(steps)])
 ```
 ## [1] 2304
 ```
+To impute the missing values, I replaced the NAs with the daily average for that interval over the remainder of the time period.  The plot shows that this produces a more 'complete result' as there are less missing bars in the plot. But, there are still some missing.  
+
+These additional missing days are absent as the 'steps' value for these days was zero, not NA.  Investigating the causes behind these zeros should be a further investigation in the study.
+
 
 ```r
+echo = TRUE
+
 #Create a new dataset substituting interval means for NAs
 modified_data <- data
 index <- which(is.na(modified_data$steps))
@@ -112,7 +122,7 @@ ggplot(modified_data,aes(date,steps)) +
     ylab("Total Steps")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
 
 ```r
 #Aggregate observations by date
@@ -128,7 +138,7 @@ summary(modified_daily_data[,steps])
 ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 ##      41    9819   10770   10770   12810   21190
 ```
-
+As you can see from the mean and median data, the new data data set is consistent with the old one which is to be expected since we used the mean from each interval to populate the missing values.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
@@ -136,7 +146,7 @@ summary(modified_daily_data[,steps])
 echo = TRUE
 
 #Prepare data for weekly pattern analysis
-weekday_pattern <- data[,weekday := weekdays(as.Date(date))]
+weekday_pattern <- modified_data[,weekday := weekdays(as.Date(date))]
 weekday_pattern[weekday == "Sunday" | weekday == "Saturday",weekday := "Weekend"]
 weekday_pattern[weekday != "Weekend",weekday := "Weekday"]
 weekday_pattern <- weekday_pattern[,mean(steps,na.rm = TRUE),by="interval,weekday"]
@@ -151,4 +161,6 @@ ggplot(weekday_pattern,aes(interval,steps)) +
     facet_grid(weekday ~ .)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
+
+There are some definite differences between weekends and weekdays in the dataset.  Weekends tend to have a less pronouced spike of acitivity in the morning so a more even distribution throughout the day. 
